@@ -26,32 +26,14 @@ const tests = [
     maxPrice: 30000,
     search: {
       firstCategory: ACCESSORY,
-      secondCategory: NECKLACE,
+      secondCategory: EARRING,
       itemTier: 3,
       itemGrade: 5,
       gradeQuality: 80,
       sortOption: { Sort: "BUY_PRICE", IsDesc: false },
       etcOptionList: [
         { firstOption: 2, secondOption: 16 },
-        { firstOption: 2, secondOption: 15 },
-        { firstOption: 3, secondOption: 121, minValue: 5 },
-        { firstOption: 3, secondOption: 249 },
-      ],
-    },
-  },
-  {
-    maxPrice: 30000,
-    search: {
-      firstCategory: ACCESSORY,
-      secondCategory: NECKLACE,
-      itemTier: 3,
-      itemGrade: 5,
-      gradeQuality: 80,
-      sortOption: { Sort: "BUY_PRICE", IsDesc: false },
-      etcOptionList: [
-        { firstOption: 2, secondOption: 16 },
-        { firstOption: 2, secondOption: 15 },
-        { firstOption: 3, secondOption: 121, minValue: 5 },
+        { firstOption: 3, secondOption: 141, minValue: 5 },
         { firstOption: 3, secondOption: 118 },
       ],
     },
@@ -60,16 +42,15 @@ const tests = [
     maxPrice: 30000,
     search: {
       firstCategory: ACCESSORY,
-      secondCategory: NECKLACE,
+      secondCategory: EARRING,
       itemTier: 3,
       itemGrade: 5,
       gradeQuality: 80,
       sortOption: { Sort: "BUY_PRICE", IsDesc: false },
       etcOptionList: [
         { firstOption: 2, secondOption: 16 },
-        { firstOption: 2, secondOption: 15 },
-        { firstOption: 3, secondOption: 121, minValue: 5 },
-        { firstOption: 3, secondOption: 291 },
+        { firstOption: 3, secondOption: 291, minValue: 5 },
+        { firstOption: 3, secondOption: 141 },
       ],
     },
   },
@@ -77,16 +58,31 @@ const tests = [
     maxPrice: 30000,
     search: {
       firstCategory: ACCESSORY,
-      secondCategory: NECKLACE,
+      secondCategory: RING,
       itemTier: 3,
       itemGrade: 5,
       gradeQuality: 80,
       sortOption: { Sort: "BUY_PRICE", IsDesc: false },
       etcOptionList: [
         { firstOption: 2, secondOption: 16 },
-        { firstOption: 2, secondOption: 15 },
-        { firstOption: 3, secondOption: 121, minValue: 5 },
-        { firstOption: 3, secondOption: 141 },
+        { firstOption: 3, secondOption: 291, minValue: 5 },
+        { firstOption: 3, secondOption: 118 },
+      ],
+    },
+  },
+  {
+    maxPrice: 30000,
+    search: {
+      firstCategory: ACCESSORY,
+      secondCategory: RING,
+      itemTier: 3,
+      itemGrade: 5,
+      gradeQuality: 80,
+      sortOption: { Sort: "BUY_PRICE", IsDesc: false },
+      etcOptionList: [
+        { firstOption: 2, secondOption: 16 },
+        { firstOption: 3, secondOption: 291, minValue: 5 },
+        { firstOption: 3, secondOption: 121 },
       ],
     },
   },
@@ -152,7 +148,7 @@ ${item.characteristic1}${
 거래: [구매 시 거래 ${item.count ? `${item.count}회 가능` : "불가능"}]
 남은시간: ${item.time}
 최소 입찰가: ${item.priceRow.toLocaleString()} 골드
-\`\`\`
+\`\`\`- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     `,
           },
         });
