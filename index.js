@@ -251,13 +251,15 @@ ${item.characteristic1}${
                     engrave2,
                     priceRow,
                   });
+
+                  res();
+
+                  break;
                 }
-
-                res();
-
-                break;
               }
             }
+
+            res();
           });
         });
       }
