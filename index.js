@@ -23,18 +23,18 @@ let productIDs = [];
 
 const tests = [
   {
-    maxPrice: 30000,
+    maxPrice: 20000,
     search: {
       firstCategory: ACCESSORY,
       secondCategory: EARRING,
       itemTier: 3,
       itemGrade: 5,
-      gradeQuality: 80,
+      gradeQuality: 90,
       sortOption: { Sort: "BUY_PRICE", IsDesc: false },
       etcOptionList: [
         { firstOption: 2, secondOption: 16 },
-        { firstOption: 3, secondOption: 141, minValue: 5 },
-        { firstOption: 3, secondOption: 118 },
+        { firstOption: 3, secondOption: 141, minValue: 4 }, // 예둔 4
+        { firstOption: 3, secondOption: 118 }, // 원한
       ],
     },
   },
@@ -49,8 +49,8 @@ const tests = [
       sortOption: { Sort: "BUY_PRICE", IsDesc: false },
       etcOptionList: [
         { firstOption: 2, secondOption: 16 },
-        { firstOption: 3, secondOption: 291, minValue: 5 },
-        { firstOption: 3, secondOption: 141 },
+        { firstOption: 3, secondOption: 291, minValue: 5 }, // 일격 5
+        { firstOption: 3, secondOption: 141 }, // 예둔
       ],
     },
   },
@@ -65,8 +65,24 @@ const tests = [
       sortOption: { Sort: "BUY_PRICE", IsDesc: false },
       etcOptionList: [
         { firstOption: 2, secondOption: 16 },
-        { firstOption: 3, secondOption: 291, minValue: 5 },
-        { firstOption: 3, secondOption: 118 },
+        { firstOption: 3, secondOption: 291, minValue: 5 }, // 일격 5
+        { firstOption: 3, secondOption: 141 }, // 예둔
+      ],
+    },
+  },
+  {
+    maxPrice: 30000,
+    search: {
+      firstCategory: ACCESSORY,
+      secondCategory: EARRING,
+      itemTier: 3,
+      itemGrade: 5,
+      gradeQuality: 80,
+      sortOption: { Sort: "BUY_PRICE", IsDesc: false },
+      etcOptionList: [
+        { firstOption: 2, secondOption: 16 },
+        { firstOption: 3, secondOption: 291, minValue: 5 }, // 일격 5
+        { firstOption: 3, secondOption: 118 }, // 원한
       ],
     },
   },
@@ -81,8 +97,8 @@ const tests = [
       sortOption: { Sort: "BUY_PRICE", IsDesc: false },
       etcOptionList: [
         { firstOption: 2, secondOption: 16 },
-        { firstOption: 3, secondOption: 291, minValue: 5 },
-        { firstOption: 3, secondOption: 121 },
+        { firstOption: 3, secondOption: 291, minValue: 5 }, // 일격 5
+        { firstOption: 3, secondOption: 118 }, // 원한
       ],
     },
   },
