@@ -1,19 +1,22 @@
 {
-  "name": "losk_ark_accessory",
+  "name": "laas",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "LAAS - LOSTARK Accessory Search",
+  "main": "./app/index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "cross-env NODE_ENV=dev electron ."
   },
   "keywords": [],
-  "author": "",
+  "author": "2skydev",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
+    "electron": "^14.0.1",
     "moment": "^2.29.1",
     "playwright": "^1.14.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.6"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
