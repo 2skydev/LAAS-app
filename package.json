@@ -4,19 +4,33 @@
   "description": "LAAS - LOSTARK Accessory Search",
   "main": "./app/index.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=dev electron ."
+    "start": "cross-env NODE_ENV=dev electron .",
+    "build": "electron-builder --win --x64"
   },
   "keywords": [],
   "author": "2skydev",
   "license": "ISC",
   "dependencies": {
-    "electron": "^14.0.1",
     "moment": "^2.29.1",
     "playwright": "^1.14.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.6"
   },
   "devDependencies": {
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "electron": "^14.0.1",
+    "electron-builder": "^22.11.7"
+  },
+  "build": {
+    "productName": "LAAS",
+    "asar": true,
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": true,
+      "artifactName": "LAAS 설치 ${version}.${ext}",
+      "uninstallDisplayName": "LAAS"
+    }
   }
 }

@@ -22,11 +22,10 @@ function createWindow() {
 
   if (process.env.NODE_ENV === "dev") {
     win.loadURL("http://localhost:3000");
+    win.webContents.openDevTools();
   } else {
     win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
   }
-
-  win.webContents.openDevTools();
 
   win.on("ready-to-show", () => {
     win.show();
