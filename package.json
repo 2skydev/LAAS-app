@@ -11,6 +11,7 @@
   "author": "2skydev",
   "license": "ISC",
   "dependencies": {
+    "electron-store": "^8.0.1",
     "moment": "^2.29.1",
     "playwright": "^1.14.1",
     "request": "^2.88.2",
@@ -30,7 +31,8 @@
     "nsis": {
       "oneClick": true,
       "artifactName": "LAAS 설치 ${version}.${ext}",
-      "uninstallDisplayName": "LAAS"
+      "uninstallDisplayName": "LAAS",
+      "installerIcon": "resources/windows/logo.ico"
     }
   }
 }

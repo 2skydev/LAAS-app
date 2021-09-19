@@ -1,6 +1,7 @@
 const playwright = require("playwright");
 const request = require("request-promise");
 const moment = require("moment");
+const { createDiscordMessage, createLog } = require("./util");
 
 const chromium = playwright.chromium;
 
@@ -14,6 +15,7 @@ const ACCESSORY = 200000; // firstCategory - 장신구 전체
 let count = 0;
 let productIDs = [];
 
+// 크롤링 브라우저 생성
 const initBrowser = async (setting) => {
   const browser = await chromium.launch({
     headless: true,
@@ -33,12 +35,19 @@ const initBrowser = async (setting) => {
   await page.fill("#user_pwd", setting.lostarkPW);
   await page.click("#idLogin .btn-text");
 
-  // 페이지 이동될 때 까지 대기
-  await page.waitForURL(`**${URL}`);
+  // 페이지 이동이 되었다면
+  await page.waitForLoadState("domcontentloaded");
 
-  return page;
+  const url = await page.url();
+
+  if (url.includes("https://member.onstove.com/auth/login")) {
+    return null;
+  } else {
+    return page;
+  }
 };
 
+// page.route에 사용할 검색 성공 callback
 const searchSuccessRoute = (resolve, setting) => async (route, req) => {
   route.abort();
   const { results, logs } = req.postDataJSON();
@@ -55,35 +64,7 @@ const searchSuccessRoute = (resolve, setting) => async (route, req) => {
 
     await request.post(DISCORD_WEBHOOK_URL, {
       json: {
-        content: `:bell: <@${
-          setting.discordUserID
-        }>님 찾으시던 매물이 발견되었습니다!
-
-> 아이템 이름: \`${item.name}\`
-> 즉시 구매가: \`${item.price.toLocaleString()} 골드\`
-> 품질: \`${item.quality}\`
-
-**각인 정보**
-\`\`\`
-${item.engrave1}
-${item.engrave2}
-\`\`\`\`\`\`css
-${item.debuff}
-\`\`\`
-**특성 정보**
-\`\`\`
-${item.characteristic1}${
-          item.characteristic2 ? `\n${item.characteristic2}` : ""
-        }
-\`\`\`
-**기타 상세 정보**
-\`\`\`
-거래: [구매 시 거래 ${item.count ? `${item.count}회 가능` : "불가능"}]
-남은시간: ${item.time}
-최소 입찰가: ${item.priceRow.toLocaleString()} 골드
-메모: ${item.memo || "작성한 메모가 없습니다"}
-\`\`\`- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    `,
+        content: createDiscordMessage(setting.discordUserID, item),
       },
     });
   }
@@ -91,7 +72,6 @@ ${item.characteristic1}${
   resolve(
     logs.map((log) => ({
       count,
-      time: moment().format("HH:mm:ss"),
       ...log,
     }))
   );
@@ -102,6 +82,13 @@ const evaluate = async (page, tests) => {
   await page.evaluate(async (tests) => {
     let _results = [];
     let _logs = [];
+
+    const createLog = (data) => {
+      _logs.push({
+        id: performance.now() + Math.random(),
+        ...data,
+      });
+    };
 
     function search(test) {
       return new Promise((res) => {
@@ -118,15 +105,8 @@ const evaluate = async (page, tests) => {
           let i = 0;
 
           if (!items.length) {
-            _logs.push({
-              test: test,
-              status: "no-items",
-              desc: "매물이 한개도 없음",
-              id: performance.now() + Math.random(),
-            });
-
+            createLog({ test, status: "no-items", desc: "매물이 한개도 없음" });
             res();
-
             return;
           }
 
@@ -198,12 +178,11 @@ const evaluate = async (page, tests) => {
               };
 
               if (test.maxPrice >= price) {
-                _logs.push({
+                createLog({
                   test,
                   result: data,
                   status: "find",
                   desc: "매물을 찾음",
-                  id: performance.now() + Math.random(),
                 });
 
                 _results.push(data);
@@ -213,12 +192,11 @@ const evaluate = async (page, tests) => {
                 break;
               } else {
                 if (i + 1 >= items.length) {
-                  _logs.push({
+                  createLog({
                     test,
                     result: data,
                     status: "overflow-maxPrice",
                     desc: "최대 가격을 넘어감",
-                    id: performance.now() + Math.random(),
                   });
                 }
               }
