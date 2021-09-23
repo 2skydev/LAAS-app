@@ -1,14 +1,14 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
-const { search, initBrowser } = require("./notification");
-const moment = require("moment");
-const { createLog } = require("./util");
 const { configStore, itemStore, logStore } = require("./store");
+const { search, initBrowser } = require("./notification");
+const { createLog } = require("./util");
 
 let win = null;
-let page = null;
+let timeoutHandle = null;
+global.page = null;
 
-function createWindow() {
+const createWindow = () => {
   win = new BrowserWindow({
     width: 1800,
     height: 1000,
@@ -26,7 +26,7 @@ function createWindow() {
 
   if (process.env.NODE_ENV === "dev") {
     win.loadURL("http://localhost:3000");
-    // win.webContents.openDevTools();
+    win.webContents.openDevTools();
   } else {
     win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
   }
@@ -34,7 +34,15 @@ function createWindow() {
   win.on("ready-to-show", () => {
     win.show();
   });
-}
+};
+
+const searchInterval = async () => {
+  const setting = configStore.get("notification");
+
+  await search();
+
+  timeoutHandle = setTimeout(searchInterval, 1000 * 60 * setting.interval);
+};
 
 app.whenReady().then(() => {
   createWindow();
@@ -74,16 +82,18 @@ ipcMain.on("appControl", async (e, action) => {
 });
 
 // 크롤링 브라우저 생성
-ipcMain.handle("initBrowser", async (e, { setting }) => {
-  if (page) {
+ipcMain.handle("initBrowser", async () => {
+  if (global.page) {
     return false;
   }
 
-  page = await initBrowser(setting);
+  const setting = configStore.get("notification");
 
-  if (!page) {
+  global.page = await initBrowser(setting);
+
+  if (!global.page) {
     createLog({
-      status: "login-fail",
+      status: "loginFail",
       desc: "로스트아크 로그인에 실패하였습니다.\n아이디 비밀번호를 확인해주세요.",
     });
 
@@ -93,9 +103,19 @@ ipcMain.handle("initBrowser", async (e, { setting }) => {
   return true;
 });
 
-// 매물 검색 알림 요청
-ipcMain.on("notification", async (e, { items, setting }) => {
-  createLog(await search(page, items, setting));
+// 로그 데이터가 변경되었을 때 변경되었다는 이벤트 생성
+logStore.onDidChange("notification", (_, logs) => {
+  ipcMain.send("logs", logs);
+});
+
+// 설정이 변경되었을 때 필수 값들을 확인 후 매물 검색 실행
+configStore.onDidChange("notification", async () => {
+  if (!page || !setting.discordUserID) {
+    clearTimeout(timeoutHandle);
+    return;
+  }
+
+  searchInterval();
 });
 
 ipcMain.handle("getConfig", (e, key) => {
@@ -114,10 +134,6 @@ ipcMain.handle("setItems", (e, data) => {
   return itemStore.set("notification", data);
 });
 
-ipcMain.handle("getLogs", (e, key) => {
+ipcMain.handle("getLogs", () => {
   return logStore.get("notification");
-});
-
-logStore.onDidChange("notification", () => {
-  ipcMain.send("logs", logStore.get("notification"));
 });

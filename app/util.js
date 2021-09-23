@@ -38,7 +38,7 @@ const createLog = (...datas) => {
 
   logs.push(
     ...datas.map((data) => ({
-      id: performance.now() + Math.random(),
+      id: new Date().getTime() + Math.random(),
       createdAt: moment().toISOString(),
       ...data,
     }))

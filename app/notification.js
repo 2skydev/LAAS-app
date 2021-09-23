@@ -1,7 +1,7 @@
 const playwright = require("playwright");
 const request = require("request-promise");
-const moment = require("moment");
 const { createDiscordMessage, createLog } = require("./util");
+const { configStore, itemStore } = require("./store");
 
 const chromium = playwright.chromium;
 
@@ -18,7 +18,7 @@ let productIDs = [];
 // 크롤링 브라우저 생성
 const initBrowser = async (setting) => {
   const browser = await chromium.launch({
-    headless: true,
+    headless: false,
   });
 
   const context = await browser.newContext({
@@ -36,14 +36,14 @@ const initBrowser = async (setting) => {
   await page.click("#idLogin .btn-text");
 
   // 페이지 이동이 되었다면
-  await page.waitForLoadState("domcontentloaded");
+  try {
+    await page.waitForURL(`**${URL}`, {
+      timeout: 5000,
+    });
 
-  const url = await page.url();
-
-  if (url.includes("https://member.onstove.com/auth/login")) {
-    return null;
-  } else {
     return page;
+  } catch (error) {
+    return null;
   }
 };
 
@@ -78,8 +78,8 @@ const searchSuccessRoute = (resolve, setting) => async (route, req) => {
 };
 
 // 페이지 내부 javascript 실행
-const evaluate = async (page, tests) => {
-  await page.evaluate(async (tests) => {
+const evaluate = async (tests) => {
+  await global.page.evaluate(async (tests) => {
     let _results = [];
     let _logs = [];
 
@@ -229,7 +229,14 @@ const evaluate = async (page, tests) => {
   }, tests);
 };
 
-const search = async (page, items, setting) => {
+const search = async () => {
+  const setting = configStore.get("notification");
+  const items = itemStore.get("notification");
+
+  if (!items.length) {
+    return false;
+  }
+
   count++;
 
   const logs = await new Promise(async (resolve) => {
@@ -290,19 +297,19 @@ const search = async (page, items, setting) => {
       });
 
       // 검색 성공 리스너
-      await page.route(
+      await global.page.route(
         `**/_search_success`,
         searchSuccessRoute(resolve, setting)
       );
 
       // 페이지 내부 javascript 실행
-      await evaluate(page, tests);
+      await evaluate(global.page, tests);
     } catch (error) {}
   });
 
-  await page.unroute("**/_search_success");
+  await global.page.unroute("**/_search_success");
 
-  return logs;
+  createLog(logs);
 };
 
 module.exports = {
