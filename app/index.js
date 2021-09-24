@@ -84,7 +84,7 @@ ipcMain.on("appControl", async (e, action) => {
 // 크롤링 브라우저 생성
 ipcMain.handle("initBrowser", async () => {
   if (global.page) {
-    return false;
+    return "existBrowser";
   }
 
   const setting = configStore.get("notification");
@@ -92,15 +92,10 @@ ipcMain.handle("initBrowser", async () => {
   global.page = await initBrowser(setting);
 
   if (!global.page) {
-    createLog({
-      status: "loginFail",
-      desc: "로스트아크 로그인에 실패하였습니다.\n아이디 비밀번호를 확인해주세요.",
-    });
-
-    return false;
+    return "loginFail";
   }
 
-  return true;
+  return "ok";
 });
 
 // 로그 데이터가 변경되었을 때 변경되었다는 이벤트 생성
@@ -109,7 +104,7 @@ logStore.onDidChange("notification", (_, logs) => {
 });
 
 // 설정이 변경되었을 때 필수 값들을 확인 후 매물 검색 실행
-configStore.onDidChange("notification", async () => {
+configStore.onDidChange("notification", async (_, setting) => {
   if (!page || !setting.discordUserID) {
     clearTimeout(timeoutHandle);
     return;

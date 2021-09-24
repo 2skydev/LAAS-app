@@ -18,7 +18,7 @@ let productIDs = [];
 // 크롤링 브라우저 생성
 const initBrowser = async (setting) => {
   const browser = await chromium.launch({
-    headless: false,
+    headless: true,
   });
 
   const context = await browser.newContext({
@@ -40,7 +40,6 @@ const initBrowser = async (setting) => {
     await page.waitForURL(`**${URL}`, {
       timeout: 5000,
     });
-
     return page;
   } catch (error) {
     return null;
