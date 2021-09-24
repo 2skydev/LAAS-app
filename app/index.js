@@ -2,14 +2,17 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const { configStore, itemStore, logStore } = require("./store");
 const { search, initBrowser } = require("./notification");
-const { createLog } = require("./util");
+const { changeStatus } = require("./util");
 
-let win = null;
 let timeoutHandle = null;
+let intervalHandle = null;
+let sec = 0;
+let isSearcing = false;
+global.win = null;
 global.page = null;
 
 const createWindow = () => {
-  win = new BrowserWindow({
+  global.win = new BrowserWindow({
     width: 1800,
     height: 1000,
     backgroundColor: "#36393F",
@@ -25,23 +28,49 @@ const createWindow = () => {
   });
 
   if (process.env.NODE_ENV === "dev") {
-    win.loadURL("http://localhost:3000");
-    win.webContents.openDevTools();
+    global.win.loadURL("http://localhost:3000");
+    global.win.webContents.openDevTools();
   } else {
-    win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
+    global.win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
   }
 
-  win.on("ready-to-show", () => {
-    win.show();
+  global.win.on("ready-to-show", () => {
+    global.win.show();
   });
 };
 
 const searchInterval = async () => {
+  if (isSearcing) {
+    return;
+  }
+
+  clearTimeout(timeoutHandle);
+  clearInterval(intervalHandle);
+
   const setting = configStore.get("notification");
+
+  if (!page || !setting.discordUserID) {
+    changeStatus("error", "configError", "필수 설정값이 비어있습니다");
+    return;
+  }
+
+  isSearcing = true;
+
+  changeStatus("processing", "searchStart", "매물 검색 시작");
 
   await search();
 
+  sec = setting.interval * 60;
+  changeStatus("success", "nextSearchSec", `다음 검색까지 ${sec}초`);
+
+  intervalHandle = setInterval(() => {
+    sec--;
+    changeStatus("success", "nextSearchSec", `다음 검색까지 ${sec}초`);
+  }, 1000);
+
   timeoutHandle = setTimeout(searchInterval, 1000 * 60 * setting.interval);
+
+  isSearcing = false;
 };
 
 app.whenReady().then(() => {
@@ -81,9 +110,15 @@ ipcMain.on("appControl", async (e, action) => {
   }
 });
 
+// 검색 바로 시작 요청시 처리
+ipcMain.on("requestNowSearch", () => {
+  searchInterval();
+});
+
 // 크롤링 브라우저 생성
 ipcMain.handle("initBrowser", async () => {
   if (global.page) {
+    console.log("existBrowser");
     return "existBrowser";
   }
 
@@ -92,24 +127,24 @@ ipcMain.handle("initBrowser", async () => {
   global.page = await initBrowser(setting);
 
   if (!global.page) {
+    changeStatus("error", "loginFail", "로스트아크 로그인 실패");
+    console.log("loginFail");
     return "loginFail";
   }
 
+  searchInterval();
+
+  console.log("initBrowser ok");
   return "ok";
 });
 
 // 로그 데이터가 변경되었을 때 변경되었다는 이벤트 생성
 logStore.onDidChange("notification", (_, logs) => {
-  ipcMain.send("logs", logs);
+  if (global.win) global.win.webContents.send("logs", logs);
 });
 
 // 설정이 변경되었을 때 필수 값들을 확인 후 매물 검색 실행
-configStore.onDidChange("notification", async (_, setting) => {
-  if (!page || !setting.discordUserID) {
-    clearTimeout(timeoutHandle);
-    return;
-  }
-
+configStore.onDidChange("notification", () => {
   searchInterval();
 });
 
@@ -132,3 +167,9 @@ ipcMain.handle("setItems", (e, data) => {
 ipcMain.handle("getLogs", () => {
   return logStore.get("notification");
 });
+
+const setting = configStore.get("notification");
+
+if (!setting.saveLogs) {
+  logStore.clear();
+}

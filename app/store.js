@@ -2,6 +2,7 @@ const Store = require("electron-store");
 
 const configStore = new Store({
   name: "config",
+  accessPropertiesByDotNotation: false,
   defaults: {
     notification: {
       lostarkID: "",
@@ -9,12 +10,14 @@ const configStore = new Store({
       discordUserID: "",
       repeat: false,
       interval: 1,
+      saveLogs: false,
     },
   },
 });
 
 const itemStore = new Store({
   name: "item",
+  accessPropertiesByDotNotation: false,
   defaults: {
     notification: [],
   },
@@ -22,12 +25,13 @@ const itemStore = new Store({
 
 const logStore = new Store({
   name: "log",
+  accessPropertiesByDotNotation: false,
   defaults: {
     notification: [],
   },
 });
 
-console.log("store import");
+console.log("store import", configStore.path);
 
 module.exports = {
   configStore,

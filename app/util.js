@@ -47,7 +47,16 @@ const createLog = (...datas) => {
   logStore.set("notification", logs);
 };
 
+const changeStatus = (status, id, desc) => {
+  global.win.webContents.send("notificationStatus", {
+    id,
+    status,
+    desc,
+  });
+};
+
 module.exports = {
   createDiscordMessage,
   createLog,
+  changeStatus,
 };

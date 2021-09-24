@@ -1,6 +1,6 @@
 const playwright = require("playwright");
 const request = require("request-promise");
-const { createDiscordMessage, createLog } = require("./util");
+const { createDiscordMessage, createLog, changeStatus } = require("./util");
 const { configStore, itemStore } = require("./store");
 
 const chromium = playwright.chromium;
@@ -46,39 +46,9 @@ const initBrowser = async (setting) => {
   }
 };
 
-// page.route에 사용할 검색 성공 callback
-const searchSuccessRoute = (resolve, setting) => async (route, req) => {
-  route.abort();
-  const { results, logs } = req.postDataJSON();
-
-  // 디스코드 웹훅 봇 실행
-  for await (const item of results) {
-    if (productIDs.includes(item.id)) {
-      if (!setting.repeat) {
-        continue;
-      }
-    } else {
-      productIDs.push(item.id);
-    }
-
-    await request.post(DISCORD_WEBHOOK_URL, {
-      json: {
-        content: createDiscordMessage(setting.discordUserID, item),
-      },
-    });
-  }
-
-  resolve(
-    logs.map((log) => ({
-      count,
-      ...log,
-    }))
-  );
-};
-
 // 페이지 내부 javascript 실행
-const evaluate = async (tests) => {
-  await global.page.evaluate(async (tests) => {
+const evaluate = async (test) => {
+  await global.page.evaluate(async (test) => {
     let _results = [];
     let _logs = [];
 
@@ -104,7 +74,7 @@ const evaluate = async (tests) => {
           let i = 0;
 
           if (!items.length) {
-            createLog({ test, status: "no-items", desc: "매물이 한개도 없음" });
+            createLog({ test, status: "noItems", desc: "매물이 한개도 없음" });
             res();
             return;
           }
@@ -194,7 +164,7 @@ const evaluate = async (tests) => {
                   createLog({
                     test,
                     result: data,
-                    status: "overflow-maxPrice",
+                    status: "overflowMaxPrice",
                     desc: "최대 가격을 넘어감",
                   });
                 }
@@ -204,28 +174,30 @@ const evaluate = async (tests) => {
             i++;
           }
 
+          if (!_logs.length) {
+            createLog({ test, status: "noPrice", desc: "즉시 입찰가가 없음" });
+          }
+
           res();
         });
       });
     }
 
-    for await (const test of tests) {
-      await search(test);
-    }
+    await search(test);
 
     try {
       await fetch("/_search_success", {
         method: "POST",
         body: JSON.stringify({
-          results: _results,
-          logs: _logs,
+          result: _results[0],
+          log: _logs[0],
         }),
         headers: {
           "Content-Type": "application/json",
         },
       });
     } catch (error) {}
-  }, tests);
+  }, test);
 };
 
 const search = async () => {
@@ -254,40 +226,40 @@ const search = async () => {
           },
         };
 
-        if (item.accessory) {
-          test.search.secondCategory = item.accessory;
+        if (item.native.accessory) {
+          test.search.secondCategory = item.native.accessory;
         }
 
-        if (item.quality) {
-          test.search.gradeQuality = item.quality;
+        if (item.native.quality) {
+          test.search.gradeQuality = item.native.quality;
         }
 
-        if (item.characteristic1) {
+        if (item.native.characteristic1) {
           test.search.etcOptionList.push({
             firstOption: 2,
-            secondOption: item.characteristic1,
+            secondOption: item.native.characteristic1,
           });
         }
 
-        if (item.characteristic2) {
+        if (item.native.characteristic2) {
           test.search.etcOptionList.push({
             firstOption: 2,
-            secondOption: item.characteristic2,
+            secondOption: item.native.characteristic2,
           });
         }
 
-        if (item.engrave1) {
+        if (item.native.engrave1) {
           test.search.etcOptionList.push({
             firstOption: 3,
-            secondOption: item.engrave1,
+            secondOption: item.native.engrave1,
             ...(item.engrave1min ? { minValue: item.engrave1min } : {}),
           });
         }
 
-        if (item.engrave2) {
+        if (item.native.engrave2) {
           test.search.etcOptionList.push({
             firstOption: 3,
-            secondOption: item.engrave2,
+            secondOption: item.native.engrave2,
             ...(item.engrave2min ? { minValue: item.engrave2min } : {}),
           });
         }
@@ -295,20 +267,81 @@ const search = async () => {
         return test;
       });
 
-      // 검색 성공 리스너
-      await global.page.route(
-        `**/_search_success`,
-        searchSuccessRoute(resolve, setting)
-      );
+      let results = [];
+      let logs = [];
+      let i = 0;
 
-      // 페이지 내부 javascript 실행
-      await evaluate(global.page, tests);
+      // 검색 성공 리스너
+      await global.page.route(`**/_search_success`, async (route, req) => {
+        const { result, log } = req.postDataJSON();
+
+        logs.push(log);
+        if (result) results.push(result);
+
+        route.abort();
+      });
+
+      // 실제 검색 처리
+      for await (const test of tests) {
+        changeStatus(
+          "processing",
+          "searchProcessing",
+          `매물 검색 진행중 ${i + 1}/${tests.length}`
+        );
+        await evaluate(test);
+        i++;
+      }
+
+      if (results.length) {
+        changeStatus(
+          "processing",
+          "notificationProcessing",
+          `디스코드 알림 처리중`
+        );
+      }
+
+      // 디스코드 웹훅 봇 실행
+      for await (const item of results) {
+        if (productIDs.includes(item.id)) {
+          if (!setting.repeat) {
+            continue;
+          }
+        } else {
+          productIDs.push(item.id);
+        }
+
+        await request.post(DISCORD_WEBHOOK_URL, {
+          json: {
+            content: createDiscordMessage(setting.discordUserID, item),
+          },
+        });
+      }
+
+      // 이미 알림 발송한 매물은 발송 했다고 로그에 추가
+      logs = logs.map((log) => {
+        if (log.status !== "find") {
+          return log;
+        }
+
+        log.repeat = productIDs.includes(log.result.id);
+        log.sendNotification = setting.repeat || !log.repeat;
+
+        return log;
+      });
+
+      // 로그 반환
+      resolve(
+        logs.map((log) => ({
+          count,
+          ...log,
+        }))
+      );
     } catch (error) {}
   });
 
   await global.page.unroute("**/_search_success");
 
-  createLog(logs);
+  createLog(...logs);
 };
 
 module.exports = {
