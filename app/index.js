@@ -139,7 +139,7 @@ ipcMain.handle("initBrowser", async () => {
 });
 
 // 로그 데이터가 변경되었을 때 변경되었다는 이벤트 생성
-logStore.onDidChange("notification", (_, logs) => {
+logStore.onDidChange("notification", (logs) => {
   if (global.win) global.win.webContents.send("logs", logs);
 });
 
