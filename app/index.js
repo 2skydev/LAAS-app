@@ -1,4 +1,11 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Tray,
+  nativeImage,
+  Menu,
+} = require("electron");
 const path = require("path");
 const { configStore, itemStore, logStore } = require("./store");
 const { search, initBrowser } = require("./notification");
@@ -8,6 +15,7 @@ let timeoutHandle = null;
 let intervalHandle = null;
 let sec = 0;
 let isSearcing = false;
+let tray = null;
 global.win = null;
 global.page = null;
 
@@ -29,7 +37,7 @@ const createWindow = () => {
 
   if (process.env.NODE_ENV === "dev") {
     global.win.loadURL("http://localhost:3000");
-    global.win.webContents.openDevTools();
+    // global.win.webContents.openDevTools();
   } else {
     global.win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
   }
@@ -83,8 +91,31 @@ const searchInterval = async () => {
   isSearcing = false;
 };
 
+// 앱이 준비되었을 때
 app.whenReady().then(() => {
   createWindow();
+
+  const icon = nativeImage.createFromPath("resources/windows/logo.ico");
+  tray = new Tray(icon);
+
+  const contextMenu = Menu.buildFromTemplate([
+    { label: "앱 화면 보기", type: "normal", click: () => createWindow() },
+    {
+      label: "대기시간 무시하고 바로 검색 시작하기",
+      type: "normal",
+      click: () => searchInterval(),
+    },
+    { type: "separator" },
+    { label: "앱 끄기", role: "quit", type: "normal" },
+  ]);
+
+  tray.setTitle("LAAS");
+  tray.setToolTip("LAAS");
+  tray.setContextMenu(contextMenu);
+
+  tray.on("click", () => {
+    createWindow();
+  });
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -93,11 +124,9 @@ app.whenReady().then(() => {
   });
 });
 
-// 모든 창이 닫길 때 앱 끄기
+// 모든 창이 닫길 때 global.win 비우기
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+  global.win = null;
 });
 
 // 창 닫기, 최대화, 최소화 같은 컨트롤 기능
@@ -140,6 +169,15 @@ ipcMain.handle("initBrowser", async () => {
   }
 
   const setting = configStore.get("notification");
+
+  if (!setting.lostarkID || !setting.lostarkPW) {
+    changeStatus(
+      "warning",
+      "configNeeded",
+      "로스트아크 계정을 설정해주세요 :)"
+    );
+    return "configNeeded";
+  }
 
   global.page = await initBrowser(setting);
 

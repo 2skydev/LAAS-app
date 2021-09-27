@@ -51,11 +51,13 @@ const createLog = (...datas) => {
 };
 
 const changeStatus = (status, id, desc) => {
-  global.win.webContents.send("notificationStatus", {
-    id,
-    status,
-    desc,
-  });
+  if (global.win) {
+    global.win.webContents.send("notificationStatus", {
+      id,
+      status,
+      desc,
+    });
+  }
 };
 
 module.exports = {
