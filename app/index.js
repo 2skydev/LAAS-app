@@ -48,9 +48,19 @@ const searchInterval = async () => {
   clearInterval(intervalHandle);
 
   const setting = configStore.get("notification");
+  const items = itemStore.get("notification");
 
   if (!page || !setting.discordUserID) {
     changeStatus("error", "configError", "필수 설정값이 비어있습니다");
+    return;
+  }
+
+  if (!items.length) {
+    changeStatus(
+      "warning",
+      "configError",
+      "매물 알림 관리에서 검색할 매물을 등록해주세요 :)"
+    );
     return;
   }
 
@@ -117,8 +127,15 @@ ipcMain.on("requestNowSearch", () => {
 
 // 크롤링 브라우저 생성
 ipcMain.handle("initBrowser", async () => {
+  const items = itemStore.get("notification");
+
   if (global.page) {
     console.log("existBrowser");
+
+    if (!items.length) {
+      searchInterval();
+    }
+
     return "existBrowser";
   }
 
@@ -141,6 +158,17 @@ ipcMain.handle("initBrowser", async () => {
 // 로그 데이터가 변경되었을 때 변경되었다는 이벤트 생성
 logStore.onDidChange("notification", (logs) => {
   if (global.win) global.win.webContents.send("logs", logs);
+});
+
+// 검색 아이템이 변경되었을 때
+itemStore.onDidChange("notification", (items, beforeItems) => {
+  if (items.length === 0) {
+    searchInterval();
+  }
+
+  if (beforeItems.length === 0 && items.length) {
+    searchInterval();
+  }
 });
 
 // 설정이 변경되었을 때 필수 값들을 확인 후 매물 검색 실행
