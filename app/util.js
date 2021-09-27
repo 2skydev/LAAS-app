@@ -34,9 +34,12 @@ ${data.characteristic1}${characteristic2}
 };
 
 const createLog = (...datas) => {
+  datas = [...datas];
+  datas.reverse();
+
   const logs = logStore.get("notification");
 
-  logs.push(
+  logs.unshift(
     ...datas.map((data) => ({
       id: new Date().getTime() + Math.random(),
       createdAt: moment().toISOString(),
