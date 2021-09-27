@@ -55,7 +55,7 @@ const evaluate = async (test) => {
     const createLog = (data) => {
       _logs.push({
         id: performance.now() + Math.random(),
-        ...data,
+        ..._.omit(data, ["search"]),
       });
     };
 
