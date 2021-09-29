@@ -33,6 +33,9 @@
       "artifactName": "LAAS 설치 ${version}.${ext}",
       "uninstallDisplayName": "LAAS",
       "installerIcon": "resources/windows/logo.ico"
-    }
+    },
+    "extraResources": [
+      "./resources/**"
+    ]
   }
 }

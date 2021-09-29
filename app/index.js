@@ -28,6 +28,12 @@ if (!gotTheLock) {
 }
 
 const createWindow = () => {
+  if (global.win) {
+    if (global.win.isMinimized()) global.win.restore();
+    global.win.focus();
+    return;
+  }
+
   global.win = new BrowserWindow({
     width: 1800,
     height: 1000,
@@ -101,12 +107,7 @@ const searchInterval = async () => {
 
 // 앱 두번째 실행때
 app.on("second-instance", () => {
-  if (global.win) {
-    if (global.win.isMinimized()) global.win.restore();
-    global.win.focus();
-  } else {
-    createWindow();
-  }
+  createWindow();
 });
 
 // 모든 창이 닫길 때 global.win 비우기
@@ -118,7 +119,11 @@ app.on("window-all-closed", () => {
 app.whenReady().then(() => {
   createWindow();
 
-  const icon = nativeImage.createFromPath("resources/windows/logo.ico");
+  const resourcesPath = app.isPackaged
+    ? path.join(process.resourcesPath, "resources")
+    : "resources";
+
+  const icon = nativeImage.createFromPath(`${resourcesPath}/windows/logo.ico`);
   tray = new Tray(icon);
 
   const contextMenu = Menu.buildFromTemplate([
