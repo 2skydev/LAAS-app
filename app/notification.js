@@ -14,11 +14,18 @@ const ACCESSORY = 200000; // firstCategory - 장신구 전체
 
 let count = 0;
 let productIDs = [];
+let isInitBrowserProcessing = false;
 
 // 크롤링 브라우저 생성
 const initBrowser = async (setting) => {
+  if (isInitBrowserProcessing) {
+    return null;
+  } else {
+    isInitBrowserProcessing = true;
+  }
+
   const browser = await chromium.launch({
-    headless: true,
+    headless: false,
   });
 
   const context = await browser.newContext({
@@ -40,6 +47,9 @@ const initBrowser = async (setting) => {
     await page.waitForURL(`**${URL}`, {
       timeout: 5000,
     });
+
+    isInitBrowserProcessing = false;
+
     return page;
   } catch (error) {
     return null;

@@ -27,10 +27,6 @@ if (!gotTheLock) {
   return false;
 }
 
-app.whenReady().then(() => {
-  myWindow = createWindow();
-});
-
 const createWindow = () => {
   global.win = new BrowserWindow({
     width: 1800,
