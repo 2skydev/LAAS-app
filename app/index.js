@@ -7,6 +7,7 @@ const {
   Menu,
 } = require("electron");
 const path = require("path");
+
 const { configStore, itemStore, logStore } = require("./store");
 const { search, initBrowser } = require("./notification");
 const { changeStatus } = require("./util");
@@ -18,6 +19,17 @@ let isSearcing = false;
 let tray = null;
 global.win = null;
 global.page = null;
+
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+  return false;
+}
+
+app.whenReady().then(() => {
+  myWindow = createWindow();
+});
 
 const createWindow = () => {
   global.win = new BrowserWindow({
@@ -91,6 +103,21 @@ const searchInterval = async () => {
   isSearcing = false;
 };
 
+// 앱 두번째 실행때
+app.on("second-instance", () => {
+  if (global.win) {
+    if (global.win.isMinimized()) global.win.restore();
+    global.win.focus();
+  } else {
+    createWindow();
+  }
+});
+
+// 모든 창이 닫길 때 global.win 비우기
+app.on("window-all-closed", () => {
+  global.win = null;
+});
+
 // 앱이 준비되었을 때
 app.whenReady().then(() => {
   createWindow();
@@ -122,11 +149,6 @@ app.whenReady().then(() => {
       createWindow();
     }
   });
-});
-
-// 모든 창이 닫길 때 global.win 비우기
-app.on("window-all-closed", () => {
-  global.win = null;
 });
 
 // 창 닫기, 최대화, 최소화 같은 컨트롤 기능

@@ -55,8 +55,72 @@ const evaluate = async (test) => {
     const createLog = (data) => {
       _logs.push({
         id: performance.now() + Math.random(),
-        ..._.omit(data, ["search"]),
+        ..._.omit(data, ["test.search"]),
       });
+    };
+
+    const getData = (el, additional = {}) => {
+      let price = Number(
+        $(el)
+          .find(".price-buy em")
+          .text()
+          .replace(/[\,\s]/g, "")
+      );
+
+      let id = $(el).find("button").attr("data-productid");
+      let name = $(el).find(".name").text().trim();
+      let quality = Number($(el).find(".quality .txt").text().trim());
+      let time = $(el).find(".time").text().trim();
+      let count = Number(
+        $(el).find(".count font").text().replace("회", "").trim()
+      );
+
+      let priceRow = $(el)
+        .find(".price-row > em")
+        .text()
+        .replace(/[\,\s]/g, "");
+
+      let characteristic1 = $(el)
+        .find(".effect ul:last-child li:first-child")
+        .text()
+        .trim();
+
+      let characteristic2 = $(el).find(".effect ul:last-child li:nth-child(2)")
+        .length
+        ? $(el).find(".effect ul:last-child li:nth-child(2)").text().trim()
+        : null;
+
+      let engrave1 = $(el)
+        .find(".effect ul:first-child li:nth-child(1)")
+        .text()
+        .trim();
+      let engrave2 = $(el)
+        .find(".effect ul:first-child li:nth-child(2)")
+        .text()
+        .trim();
+
+      let debuff = $(el)
+        .find(".effect ul:first-child li:last-child")
+        .text()
+        .trim();
+
+      if (isNaN(count)) count = 0;
+
+      return {
+        price,
+        id,
+        name,
+        quality,
+        time,
+        count,
+        priceRow,
+        characteristic1,
+        characteristic2,
+        engrave1,
+        engrave2,
+        debuff,
+        ...additional,
+      };
     };
 
     function search(test) {
@@ -72,6 +136,7 @@ const evaluate = async (test) => {
           const items = $("#auctionListTbody tr:not(.empty)").toArray();
 
           let i = 0;
+          let firstItem = null;
 
           if (!items.length) {
             createLog({ test, status: "noItems", desc: "매물이 한개도 없음" });
@@ -87,66 +152,9 @@ const evaluate = async (test) => {
 
             // 즉시 구매가가 있다면
             if (price !== "-") {
-              let id = $(el).find("button").attr("data-productid");
-              let name = $(el).find(".name").text().trim();
-              let quality = Number($(el).find(".quality .txt").text().trim());
-              let count = Number(
-                $(el).find(".count font").text().replace("회", "").trim()
-              );
-              let time = $(el).find(".time").text().trim();
-              let priceRow = $(el)
-                .find(".price-row > em")
-                .text()
-                .replace(/[\,\s]/g, "");
+              const data = getData(el, { memo: test.memo });
 
-              let characteristic1 = $(el)
-                .find(".effect ul:last-child li:first-child")
-                .text()
-                .trim();
-              let characteristic2 = $(el).find(
-                ".effect ul:last-child li:nth-child(2)"
-              ).length
-                ? $(el)
-                    .find(".effect ul:last-child li:nth-child(2)")
-                    .text()
-                    .trim()
-                : null;
-
-              let engrave1 = $(el)
-                .find(".effect ul:first-child li:nth-child(1)")
-                .text()
-                .trim();
-              let engrave2 = $(el)
-                .find(".effect ul:first-child li:nth-child(2)")
-                .text()
-                .trim();
-
-              let debuff = $(el)
-                .find(".effect ul:first-child li:last-child")
-                .text()
-                .trim();
-
-              price = Number(price);
-
-              if (isNaN(count)) count = 0;
-
-              const data = {
-                id,
-                name,
-                quality,
-                count,
-                price,
-                debuff,
-                time,
-                characteristic1,
-                characteristic2,
-                engrave1,
-                engrave2,
-                priceRow,
-                memo: test.memo,
-              };
-
-              if (test.maxPrice >= price) {
+              if (test.maxPrice >= data.price) {
                 createLog({
                   test,
                   result: data,
@@ -160,10 +168,14 @@ const evaluate = async (test) => {
 
                 break;
               } else {
+                if (!firstItem) {
+                  firstItem = data;
+                }
+
                 if (i + 1 >= items.length) {
                   createLog({
                     test,
-                    result: data,
+                    result: firstItem,
                     status: "overflowMaxPrice",
                     desc: "최대 가격을 넘어감",
                   });
