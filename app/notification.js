@@ -24,9 +24,27 @@ const initBrowser = async (setting) => {
     isInitBrowserProcessing = true;
   }
 
-  const browser = await chromium.launch({
-    headless: true,
-  });
+  changeStatus(
+    "processing",
+    "browserInit",
+    "브라우저 초기화 및 로스트아크 로그인중"
+  );
+
+  let browser;
+
+  try {
+    browser = await chromium.launch({
+      headless: true,
+      executablePath: "./resources/windows/chrome/chrome.exe",
+    });
+  } catch (error) {
+    changeStatus(
+      "error",
+      "browserInitError",
+      "브라우저를 실행할 수 없습니다. 개발자에게 문의해주세요."
+    );
+    console.error(error)
+  }
 
   const context = await browser.newContext({
     baseURL: HOST,
