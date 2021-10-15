@@ -2,6 +2,7 @@ const playwright = require("playwright");
 const request = require("request-promise");
 const { createDiscordMessage, createLog, changeStatus } = require("./util");
 const { configStore, itemStore } = require("./store");
+const path = require('path')
 
 const chromium = playwright.chromium;
 
@@ -11,6 +12,11 @@ const DISCORD_WEBHOOK_URL =
   "https://discord.com/api/webhooks/883991003487404083/XjnZ6iPQxKtb2luM9WEMsT-gv0_o6AUG1wfFXAByiO1jOhRk7whRjF0Is7GuKSXrkyll";
 
 const ACCESSORY = 200000; // firstCategory - 장신구 전체
+
+const chromePath =
+  process.env.NODE_ENV === "dev"
+    ? "./resources/windows/chrome/chrome.exe"
+    : path.resolve(__dirname, "../../resources/windows/chrome/chrome.exe");
 
 let count = 0;
 let productIDs = [];
@@ -35,13 +41,14 @@ const initBrowser = async (setting) => {
   try {
     browser = await chromium.launch({
       headless: true,
-      executablePath: "./resources/windows/chrome/chrome.exe",
+      executablePath: chromePath,
     });
   } catch (error) {
     changeStatus(
       "error",
       "browserInitError",
-      "브라우저를 실행할 수 없습니다. 개발자에게 문의해주세요."
+      chromePath
+      // "브라우저를 실행할 수 없습니다. 개발자에게 문의해주세요."
     );
     console.error(error)
   }

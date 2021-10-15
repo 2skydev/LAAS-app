@@ -50,8 +50,8 @@ const createWindow = () => {
   });
 
   if (process.env.NODE_ENV === "dev") {
-    global.win.loadURL("http://localhost:3000");
-    // global.win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
+    // global.win.loadURL("http://localhost:3000");
+    global.win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
     // global.win.webContents.openDevTools();
   } else {
     global.win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
