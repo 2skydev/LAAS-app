@@ -5,6 +5,7 @@
   "main": "./app/index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=dev electron .",
+    "test": "cross-env NODE_ENV=dev node test.js",
     "build": "electron-builder --win --x64"
   },
   "keywords": [],

@@ -8,6 +8,9 @@ const {
 } = require("electron");
 const path = require("path");
 
+// %USERPROFILE%\AppData\Local\Programs\laas
+// %USERPROFILE%\AppData\Roaming\laas
+
 const { configStore, itemStore, logStore } = require("./store");
 const { search, initBrowser } = require("./notification");
 const { changeStatus } = require("./util");
