@@ -187,7 +187,7 @@ const evaluate = async (test) => {
 
             // 즉시 구매가가 있다면
             if (price !== "-") {
-              const data = getData(el, { memo: test.memo });
+              const data = getData(el, { memo: test.memo, grade: test.item.native.grade });
 
               if (test.maxPrice >= data.price) {
                 createLog({
@@ -267,7 +267,7 @@ const search = async () => {
           search: {
             firstCategory: ACCESSORY,
             itemTier: 3,
-            itemGrade: 5,
+            itemGrade: Number(item.native.grade),
             sortOption: { Sort: "BUY_PRICE", IsDesc: false },
             etcOptionList: [],
           },

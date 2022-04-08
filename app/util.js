@@ -9,6 +9,7 @@ const createDiscordMessage = (discordUserID, data) => {
 
   return `:bell: <@${discordUserID}>님 찾으시던 매물이 발견되었습니다!
 
+> 아이템 등급: \`${+data.grade === 5 ? '유물' : '고대'}\`
 > 아이템 이름: \`${data.name}\`
 > 즉시 구매가: \`${data.price.toLocaleString()} 골드\`
 > 품질: \`${data.quality}\`

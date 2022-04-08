@@ -8,9 +8,6 @@ const {
 } = require("electron");
 const path = require("path");
 
-// %USERPROFILE%\AppData\Local\Programs\laas
-// %USERPROFILE%\AppData\Roaming\laas
-
 const { configStore, itemStore, logStore } = require("./store");
 const { search, initBrowser } = require("./notification");
 const { changeStatus } = require("./util");
@@ -27,7 +24,7 @@ const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
   app.quit();
-  return false;
+  process.exit(0);
 }
 
 const createWindow = () => {
@@ -53,9 +50,9 @@ const createWindow = () => {
   });
 
   if (process.env.NODE_ENV === "dev") {
-    // global.win.loadURL("http://localhost:3000");
-    global.win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
-    // global.win.webContents.openDevTools();
+    global.win.loadURL("http://localhost:3000");
+    // global.win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
+    global.win.webContents.openDevTools();
   } else {
     global.win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
   }
