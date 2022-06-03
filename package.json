@@ -1,6 +1,6 @@
 {
   "name": "laas",
-  "version": "1.1.2",
+  "version": "1.1.4",
   "description": "LAAS - LOSTARK Accessory Search",
   "main": "./app/index.js",
   "scripts": {

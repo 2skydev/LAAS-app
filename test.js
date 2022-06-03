@@ -11,21 +11,20 @@ const userData =
     ? "C:/Users/2sky/AppData/Local/Naver/Naver Whale/User Data"
     : "C:/Users/2sky/AppData/Local/Google/Chrome/User Data";
 
-const executablePath =
-  browserName === "whale"
-    ? "C:/Program Files/Naver/Naver Whale/Application/2.10.124.26/whale.exe"
-    : "C:/Program Files/Google/Chrome/Application/chrome.exe";
+const chromePath =
+  process.env.NODE_ENV === "dev"
+    ? "./resources/windows/chrome/chrome.exe"
+    : path.resolve(__dirname, "../../resources/windows/chrome/chrome.exe");
 
 async function test(options = {}) {
   let context;
 
-  context = await chromium.launchPersistentContext(__dirname + "/User Data", {
+  context = await chromium.launchPersistentContext(__dirname + "/chrome_data", {
     headless: options.headless || false,
-    executablePath,
+    executablePath: chromePath,
     baseURL: HOST,
     locale: "ko-KR",
     viewport: null,
-    args: ["--profile-directory=Default"],
   });
 
   const page = context.pages()[0];
@@ -38,12 +37,9 @@ async function test(options = {}) {
 
   if (page.url().includes("https://member.onstove.com/auth/login")) {
     await page.waitForURL(`**${URL}`, { timeout: 0 })
-    await test({ headless: true })
     context.close()
-    return false
+    await test({ headless: false });
   }
-
-  console.log(page.url());
 
   // try {
   //   await page.waitForURL(`**${URL}`, {
