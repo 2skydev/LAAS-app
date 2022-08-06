@@ -8,10 +8,14 @@ const {
 } = require("electron");
 const path = require("path");
 const { autoUpdater } = require("electron-updater");
+const log = require('electron-log');
 
 const { configStore, itemStore, logStore } = require("./store");
 const { search, initBrowser } = require("./notification");
 const { changeStatus } = require("./util");
+
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
 
 let timeoutHandle = null;
 let intervalHandle = null;

@@ -14,7 +14,7 @@
   },
   "nsis": {
     "oneClick": true,
-    "artifactName": "LAAS 설치 ${version}.${ext}",
+    "artifactName": "LAAS-Setup-${version}.${ext}",
     "uninstallDisplayName": "LAAS",
     "installerIcon": "resources/windows/logo.ico"
   },
