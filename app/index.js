@@ -7,6 +7,7 @@ const {
   Menu,
 } = require("electron");
 const path = require("path");
+const { autoUpdater } = require("electron-updater");
 
 const { configStore, itemStore, logStore } = require("./store");
 const { search, initBrowser } = require("./notification");
@@ -50,8 +51,8 @@ const createWindow = () => {
   });
 
   if (process.env.NODE_ENV === "dev") {
-    // global.win.loadURL("http://localhost:3000");
-    global.win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
+    global.win.loadURL("http://localhost:3000");
+    // global.win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
     // global.win.webContents.openDevTools();
   } else {
     global.win.loadFile(`${path.join(__dirname, "../www/index.html")}`);
@@ -119,6 +120,8 @@ app.on("window-all-closed", () => {
 // 앱이 준비되었을 때
 app.whenReady().then(() => {
   createWindow();
+
+  autoUpdater.checkForUpdatesAndNotify();
 
   const resourcesPath = app.isPackaged
     ? path.join(process.resourcesPath, "resources")
@@ -236,6 +239,10 @@ itemStore.onDidChange("notification", (items, beforeItems) => {
 // 설정이 변경되었을 때 필수 값들을 확인 후 매물 검색 실행
 configStore.onDidChange("notification", () => {
   searchInterval();
+});
+
+ipcMain.handle("getVersion", async () => {
+  return app.getVersion();
 });
 
 ipcMain.handle("getConfig", (e, key) => {

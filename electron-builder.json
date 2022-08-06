@@ -1,0 +1,24 @@
+{
+  "productName": "LAAS",
+  "appId": "kr.2skydev.laas",
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "2skydev",
+      "repo": "LAAS-app"
+    }
+  ],
+  "asar": true,
+  "win": {
+    "target": "nsis"
+  },
+  "nsis": {
+    "oneClick": true,
+    "artifactName": "LAAS 설치 ${version}.${ext}",
+    "uninstallDisplayName": "LAAS",
+    "installerIcon": "resources/windows/logo.ico"
+  },
+  "extraResources": [
+    "./resources/**"
+  ]
+}

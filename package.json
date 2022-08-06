@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "electron-store": "^8.0.1",
+    "electron-updater": "^5.2.1",
     "moment": "^2.29.1",
     "playwright": "^1.15.0",
     "request": "^2.88.2",
@@ -22,21 +23,5 @@
     "cross-env": "^7.0.3",
     "electron": "^14.0.1",
     "electron-builder": "^22.11.7"
-  },
-  "build": {
-    "productName": "LAAS",
-    "asar": true,
-    "win": {
-      "target": "nsis"
-    },
-    "nsis": {
-      "oneClick": true,
-      "artifactName": "LAAS 설치 ${version}.${ext}",
-      "uninstallDisplayName": "LAAS",
-      "installerIcon": "resources/windows/logo.ico"
-    },
-    "extraResources": [
-      "./resources/**"
-    ]
   }
 }
